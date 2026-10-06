@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# Entornos y secretos locales
+.venv/
+venv/
+ENV/
+.env
+.env.*
+!.env.example
+
+# Compilación C
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+build/
+dist/
+
+# Resultados y logs generados
+logs/*
+!logs/.gitkeep
+resultados/*
+!resultados/.gitignore
+!resultados/.gitkeep
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

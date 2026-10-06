@@ -1,0 +1,9 @@
+paso,proceso_id,operacion,tamano_kb
+1,P001,asignar,128
+2,P002,asignar,96
+3,P003,asignar,160
+4,P002,liberar,96
+5,P004,asignar,64
+6,P001,liberar,128
+7,P003,liberar,160
+8,P004,liberar,64

@@ -1,0 +1,1 @@
+/* Ejemplifica operaciones POSIX de lectura y escritura del registro simulado. */

@@ -1,0 +1,5 @@
+*.o
+lectores_escritores
+semaforos
+lectores_escritores.exe
+semaforos.exe
