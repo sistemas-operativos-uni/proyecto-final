@@ -114,6 +114,14 @@ def test_config_tiene_valores_por_defecto_documentados():
     assert c.quantum == 2
     assert c.cambio_contexto == 0
     assert c.directorio_resultados == Path("resultados")
+    assert c.exportar is False
+
+
+def test_config_acepta_exportar_y_lo_rechaza_si_no_es_booleano():
+    assert SimulationConfig(exportar=True).exportar is True
+    for invalido in (1, "si", None):
+        with pytest.raises(ValueError, match="exportar"):
+            SimulationConfig(exportar=invalido)
 
 
 def test_config_convierte_texto_a_ruta():

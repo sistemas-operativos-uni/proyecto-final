@@ -21,7 +21,8 @@ from collections import Counter
 from modulo1_procesos.py import fcfs, prioridad, round_robin, sjf
 from modulo1_procesos.py.diagrama import gantt_ascii, informe, lineas_de_log
 from modulo1_procesos.py.motor import ResultadoPlanificacion, Segmento
-from modulo1_procesos.py.planificador import ALGORITMOS, comparar, main, planificar
+from modulo1_procesos.py.cli import main
+from modulo1_procesos.py.planificador import ALGORITMOS, comparar, planificar
 
 ALGORITMOS_NO_EXPROPIATIVOS = [fcfs, sjf, prioridad]
 NOMBRES = ["FCFS", "SJF", "PRIORIDAD"]

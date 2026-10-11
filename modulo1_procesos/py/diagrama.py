@@ -7,7 +7,10 @@ ninguna regla de planificación.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from core.metricas import formatear_tabla
+from core.modelos import ModuleResult
 
 from .motor import (
     ACCION_CAMBIO_CONTEXTO,
@@ -16,6 +19,7 @@ from .motor import (
     ResultadoPlanificacion,
     Segmento,
 )
+from .metricas_planificacion import ComparacionAlgoritmos
 from .pcb import ACCION_TRANSICION
 
 PREFIJO_GANTT = "Gantt: "
@@ -119,3 +123,66 @@ def informe(
     if verbose:
         partes.append("\n".join(lineas_de_log(resultado)))
     return "\n".join(partes)
+
+
+# Encabezado de la tabla -> campo de MetricasPlanificacion que muestra.
+COLUMNAS_COMPARATIVA = (
+    ("algoritmo", "algoritmo"),
+    ("espera", "espera_media"),
+    ("retorno", "retorno_medio"),
+    ("respuesta", "respuesta_media"),
+    ("cpu%", "utilizacion_cpu"),
+    ("throughput", "throughput"),
+    ("cambios_ctx", "cambios_contexto"),
+)
+
+
+def _formatear_comparativa(
+    filas: list[Mapping[str, object]], escenario: str | None, mejor: Mapping[str, str | None] | None
+) -> str:
+    """Tabla comparativa a partir de filas planas, con o sin las líneas de "mejor".
+
+    Las filas pueden venir de `MetricasPlanificacion.fila()` o del diccionario
+    de métricas de un `ModuleResult`: en los dos casos tienen las mismas claves.
+    """
+    titulo = f"== Comparación | escenario={escenario} ==" if escenario else "== Comparación =="
+    celdas = []
+    for fila in filas:
+        # Sin dato, la celda se omite y la tabla muestra "-". Pasar None
+        # imprimiría la palabra "None" en medio de los números.
+        celdas.append(
+            {encabezado: fila[campo] for encabezado, campo in COLUMNAS_COMPARATIVA if fila.get(campo) is not None}
+        )
+    lineas = [titulo, formatear_tabla([encabezado for encabezado, _ in COLUMNAS_COMPARATIVA], celdas)]
+    if mejor is not None:
+        lineas.append(f"Mejor espera media: {mejor.get('espera_media') or '-'}")
+        lineas.append(f"Mejor respuesta media: {mejor.get('respuesta_media') or '-'}")
+    return "\n".join(lineas)
+
+
+def tabla_comparativa(comparacion: ComparacionAlgoritmos, escenario: str | None = None) -> str:
+    """Una fila por algoritmo y debajo quién gana en espera y en respuesta."""
+    mejor = {
+        "espera_media": comparacion.mejor("espera_media"),
+        "respuesta_media": comparacion.mejor("respuesta_media"),
+    }
+    return _formatear_comparativa(comparacion.filas(), escenario, mejor)
+
+
+def informe_modulo(resultado: ModuleResult) -> str:
+    """Resumen de un `ModuleResult` del Módulo 1 para la consola.
+
+    Lee solo los campos del contrato, sin conocer los algoritmos: la CLI
+    muestra lo mismo que verá cualquier otro consumidor del resultado. Los
+    errores no se incluyen; la CLI los escribe aparte, por la salida de error.
+    """
+    metricas = resultado.metricas
+    algoritmos = metricas.get("algoritmos", {})
+    cabecera = (
+        f"[modulo1] estado={resultado.estado} procesos={metricas.get('procesos', 0)} "
+        f"algoritmos={len(algoritmos)} errores={len(resultado.errores)}"
+    )
+    if not algoritmos:
+        return cabecera
+    tabla = _formatear_comparativa(list(algoritmos.values()), metricas.get("escenario"), metricas.get("mejor"))
+    return f"{cabecera}\n{tabla}"

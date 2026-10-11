@@ -2,7 +2,17 @@
 
 Responsable: Renato. Rama: `feature/renato-procesos-planificacion`.
 
-## 1. Diagnóstico del repositorio (11 de octubre de 2026)
+> **Estado: cerrado (11 de octubre de 2026).** Las fases 0 a 8 están hechas, salvo lo listado abajo. Los pendientes no bloquean el cierre del módulo.
+>
+> | Pendiente | Motivo |
+> | --- | --- |
+> | Aging (envejecimiento) para Prioridad | Mejora opcional del plan; no implementada |
+> | Material de sustentación | No preparado; se arma desde `IMPLEMENTATIONS.md`, `make planificacion` y `make comparacion` |
+> | Aviso a Gabriel y Adán sobre `core/` | Hoy solo el Módulo 1 usa `core/`; los Módulos 3 y 4 no lo usan |
+> | `make test` global en verde | Fallan 24 pruebas del Módulo 2 por un `#include` comentado en su código |
+> | Commits por fase | Parte del trabajo sigue sin confirmar en git |
+
+## 1. Diagnóstico inicial del repositorio (11 de octubre de 2026, histórico)
 
 Revisadas `main`, `origin/feature/modulo3-paginacion`, `origin/feature/modulo4-memoria` y la rama actual.
 
@@ -42,13 +52,14 @@ El Módulo 4 ya declara pendiente "adaptar `ResultadoMemoria` a `ModuleResult` c
 ```text
 modulo1_procesos/
 ├── docs/WORKPLAN.md              este archivo
-├── docs/IMPLEMENTATIONS.md       registro por fase (se crea al cerrar la Fase 1)
+├── docs/IMPLEMENTATIONS.md       registro por fase y discusión crítica de los algoritmos
 ├── py/
 │   ├── pcb.py                    PCB, estados y transiciones válidas
 │   ├── fcfs.py  sjf.py  prioridad.py  round_robin.py
 │   ├── planificador.py           registro de algoritmos + comparación
-│   ├── metricas_planificacion.py espera, retorno, respuesta, CPU, throughput
+│   ├── metricas_planificacion.py espera, retorno, respuesta, CPU, throughput, comparación y exportación
 │   ├── diagrama.py               Gantt ASCII a partir de los eventos
+│   ├── graficos.py               gráfico de barras (matplotlib, backend Agg)
 │   └── cli.py                    `python -m modulo1_procesos.py.cli`
 └── c/
     ├── crear_proceso.c           fork / exec / wait
@@ -219,12 +230,12 @@ cambios_de_contexto=8
 
 Objetivo: lo que pide la rúbrica ("compara cuantitativamente con gráficos y discusión crítica").
 
-- [ ] `metricas_planificacion.py`: tiempo de espera, retorno, **respuesta**, utilización de CPU, throughput, cambios de contexto, por proceso y promedios.
-- [ ] Una sola fuente de verdad: las métricas se derivan de los eventos, no se calculan en cada algoritmo.
-- [ ] `comparar_algoritmos()` ejecuta todos con exactamente el mismo escenario.
-- [ ] Exportación a `resultados/procesos_<escenario>.csv|json`.
-- [ ] Gráfico de barras (espera y retorno por algoritmo) con `matplotlib`, backend `Agg` para no requerir pantalla.
-- [ ] Sección de discusión en `IMPLEMENTATIONS.md`: efecto convoy en FCFS, inanición posible en SJF/Prioridad, compromiso de quantum en RR.
+- [x] `metricas_planificacion.py`: tiempo de espera, retorno, **respuesta**, utilización de CPU, throughput, cambios de contexto, por proceso y promedios.
+- [x] Una sola fuente de verdad: las métricas se derivan de los eventos, no se calculan en cada algoritmo (`calcular_metricas` recibe solo eventos; las pruebas lo alimentan con eventos escritos a mano).
+- [x] `comparar_algoritmos()` ejecuta todos con exactamente el mismo escenario.
+- [x] Exportación a `resultados/procesos_<escenario>.csv|json`.
+- [x] Gráfico de barras (espera y retorno por algoritmo) con `matplotlib`, backend `Agg` para no requerir pantalla.
+- [x] Sección de discusión en `IMPLEMENTATIONS.md`: efecto convoy en FCFS, inanición posible en SJF/Prioridad, compromiso de quantum en RR.
 
 Pruebas primero: invariantes (retorno = espera + ráfaga; Σ ráfagas = tiempo ocupado de CPU; respuesta ≤ espera) y coincidencia con la tabla de la Fase 4.
 
@@ -244,11 +255,11 @@ Mejor espera media: SJF
 
 ### Fase 7: Integración con el orquestador y CLI
 
-- [ ] Adaptador `ejecutar(config) -> ModuleResult` para el módulo (cumple `core/contratos.py`).
-- [ ] `main.py procesos --escenario ... --algoritmo FCFS|SJF|RR|PRIORIDAD|todos --quantum N --verbose`.
-- [ ] `make procesos` (Python) y `make procesos-c` (demos C) en el `Makefile` raíz; `make test` ejecuta `pytest` y las comprobaciones de C.
-- [ ] Un fallo recuperable (escenario con una fila inválida) queda en `ModuleResult.errores`; nunca termina en silencio.
-- [ ] Verificar que el módulo no importa a `modulo2`..`modulo7` (prueba de dependencias).
+- [x] Adaptador `ejecutar(config) -> ModuleResult` para el módulo (cumple `core/contratos.py`).
+- [x] `main.py procesos --escenario ... --algoritmo FCFS|SJF|RR|PRIORIDAD|todos --quantum N --cambio-contexto N --exportar`. El detalle por evento y el Gantt (`--verbose`) siguen en `python -m modulo1_procesos.py.cli`, que trabaja con los resultados completos; `main.py procesos` muestra solo lo que lleva el contrato `ModuleResult`.
+- [x] `make procesos` (Python) y `make procesos-c` (demos C) en el `Makefile` raíz; `make test` ejecuta `pytest` y las comprobaciones de C.
+- [x] Un fallo recuperable (escenario con una fila inválida) queda en `ModuleResult.errores`; nunca termina en silencio.
+- [x] Verificar que el módulo no importa a `modulo2`..`modulo7` (prueba de dependencias).
 
 Pruebas primero: integración con `lote_pequeno.csv`, `lote_grande.csv` y un CSV corrupto.
 
@@ -263,13 +274,15 @@ $ python main.py procesos --algoritmo todos --escenario escenarios/lote_pequeno.
 
 ### Fase 8: Robustez, calidad y cierre de documentación
 
-- [ ] Escenarios límite: 1 proceso, 100 procesos generados, ráfagas muy desiguales (convoy), llegadas idénticas.
-- [ ] C: `-fsanitize=address,undefined` y `valgrind` sin reportes; `-Werror` en CI local.
-- [ ] Mejora opcional: Prioridad expropiativa y **aging** para demostrar inanición y su mitigación.
-- [ ] Pruebas de regresión por cada bug hallado.
-- [ ] `docs/IMPLEMENTATIONS.md` del módulo (mismo formato que Módulos 2 y 4): qué se hizo, comandos, resultados.
-- [ ] Actualizar `README.md`, `docs/instalacion_y_ejecucion.md` y el estado de esqueletos.
-- [ ] Preparar el material de sustentación: diagrama de estados, Gantt de los 4 algoritmos, tabla comparativa.
+- [x] Escenarios límite: 1 proceso, 100 procesos generados, ráfagas muy desiguales, llegadas idénticas y una llegada muy lejana, para los cuatro algoritmos (`tests/test_escenarios_limite.py`). No encontraron ningún bug.
+- [x] C: `make sanitize` compila con `-fsanitize=address,undefined` y los dos programas corren sin reportes, con controles negativos que prueban que los sanitizers detectan errores aquí.
+- [x] C: Valgrind 3.26.0 sin errores ni fugas en `hilos` (7 reservas, 7 liberaciones) ni en `crear_proceso` (informes del padre y del hijo cuyo `execvp` falla).
+- [x] C: `make werror` compila las fuentes con las banderas del proyecto y `-Werror`, sin dejar archivos; controles negativos prueban que falla ante una advertencia.
+- [ ] Mejora opcional: Prioridad expropiativa y **aging** para demostrar inanición y su mitigación. **No implementada.** La inanición se demuestra en `IMPLEMENTATIONS.md` con un escenario sintético; la mitigación queda como trabajo futuro.
+- [x] Pruebas de regresión por cada bug hallado. No aplica: la Fase 8 no halló ningún bug. Los escenarios límite quedan como pruebas de regresión.
+- [x] `docs/IMPLEMENTATIONS.md` del módulo (mismo formato que Módulos 2 y 4): qué se hizo, comandos, resultados.
+- [x] Actualizar `README.md`, `docs/instalacion_y_ejecucion.md` y el estado de esqueletos. `tests/test_readme_modulo1.py` ejecuta los comandos que documentan y rechaza el texto desactualizado.
+- [ ] Preparar el material de sustentación: diagrama de estados, Gantt de los 4 algoritmos, tabla comparativa. **No preparado.** Los datos existen: `IMPLEMENTATIONS.md`, el Gantt de `make planificacion` y el gráfico de `make comparacion`.
 
 **Log de la fase:** reporte final de `make test` con conteo de pruebas y resultado de los sanitizers.
 
@@ -290,12 +303,13 @@ Fase 0 ──► Fase 1 ──► Fase 4 ──► Fase 5 ──► Fase 6 ─�
 
 ## 7. Definición de terminado (módulo completo)
 
-- [ ] Los 4 algoritmos producen las métricas del oráculo y su Gantt.
-- [ ] Demos C compilan sin warnings y su log muestra PIDs/TIDs reales.
-- [ ] Cada fase tiene su log verificable en consola.
-- [ ] `make test` verde; sanitizers limpios.
-- [ ] `core/` consumido también por los Módulos 3 y 4.
-- [ ] Commits pequeños por fase con mensaje claro (criterio de la rúbrica "control de versiones").
+- [x] Los 4 algoritmos producen las métricas del oráculo y su Gantt.
+- [x] Demos C compilan sin warnings y su log muestra PIDs/TIDs reales.
+- [x] Cada fase tiene su log verificable en consola. Excepción: la Fase 1 no imprime un log propio; su secuencia de estados la verifica una prueba de aceptación y se ve en el log de las Fases 4 y 5.
+- [x] Las pruebas del Módulo 1 pasan y los sanitizers, Valgrind y `-Werror` salen limpios.
+- [ ] `make test` verde para todo el repositorio. Fallan 24 pruebas del Módulo 2 (`#include <semaphore.h>` comentado en `lectores_escritores.c`); ninguna es del Módulo 1.
+- [ ] `core/` consumido también por los Módulos 3 y 4. Hoy solo lo usa el Módulo 1; falta el aviso al equipo.
+- [ ] Commits pequeños por fase con mensaje claro (criterio de la rúbrica "control de versiones"). Hay commits de las Fases 0 a 5; los cambios posteriores siguen sin confirmar.
 
 ## 8. Riesgos y preguntas abiertas
 

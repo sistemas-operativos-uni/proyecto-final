@@ -84,6 +84,7 @@ class SimulationConfig:
     quantum: int = 2
     cambio_contexto: int = 0
     directorio_resultados: Path = Path("resultados")
+    exportar: bool = False
 
     def __post_init__(self) -> None:
         # La CLI entrega rutas como texto; aquí se unifican a Path.
@@ -93,6 +94,10 @@ class SimulationConfig:
         _exigir_texto("algoritmo", self.algoritmo)
         _exigir_entero("quantum", self.quantum, 1)
         _exigir_entero("cambio_contexto", self.cambio_contexto, 0)
+        # Se compara el tipo exacto: 1 o "si" no son un sí válido y dejarían
+        # exportar archivos por un valor mal escrito.
+        if not isinstance(self.exportar, bool):
+            raise ValueError(f"exportar debe ser True o False, recibió {self.exportar!r}")
 
 
 @dataclass(frozen=True, slots=True)
