@@ -74,12 +74,12 @@ Campos de evento: `instante`, `modulo="procesos"`, `entidad` (id del proceso), `
 
 Objetivo: contratos compartidos que el Módulo 3 y el Módulo 4 esperan.
 
-- [ ] `core/modelos.py`: `Proceso` (id, llegada, ráfaga, prioridad, memoria_kb, cursos), `Evento`, `SimulationConfig`, `ModuleResult` (estado, eventos, métricas, errores). Datos inmutables (`dataclass(frozen=True, slots=True)`).
-- [ ] `core/contratos.py`: `Protocol` de módulo ejecutable (`ejecutar(config) -> ModuleResult`).
-- [ ] `core/reloj.py`: reloj lógico monótono (`avanzar`, `saltar_a`), no retrocede.
-- [ ] `core/cargador_escenarios.py`: lee y **valida** `lote_pequeno.csv` / `lote_grande.csv` (columnas, enteros, ráfaga > 0, llegada ≥ 0, ids únicos); errores explícitos, sin fallos silenciosos.
-- [ ] `core/metricas.py`: promedio y exportación a CSV/JSON en `resultados/`.
-- [ ] `main.py`: parser con subcomando `procesos` (se completa en la Fase 7).
+- [x] `core/modelos.py`: `Proceso` (id, llegada, ráfaga, prioridad, memoria_kb, cursos), `Evento`, `SimulationConfig`, `ModuleResult` (estado, eventos, métricas, errores). Datos inmutables (`dataclass(frozen=True, slots=True)`).
+- [x] `core/contratos.py`: `Protocol` de módulo ejecutable (`ejecutar(config) -> ModuleResult`).
+- [x] `core/reloj.py`: reloj lógico monótono (`avanzar`, `saltar_a`), no retrocede.
+- [x] `core/cargador_escenarios.py`: lee y **valida** `lote_pequeno.csv` / `lote_grande.csv` (columnas, enteros, ráfaga > 0, llegada ≥ 0, ids únicos); errores explícitos, sin fallos silenciosos.
+- [x] `core/metricas.py`: promedio y exportación a CSV/JSON en `resultados/`.
+- [x] `main.py`: parser con subcomando `procesos` (se completa en la Fase 7).
 - [ ] Aviso al equipo (Gabriel y Adán) con los nombres de campos finales.
 
 Pruebas primero: `tests/test_core.py` (CSV válido, columna faltante, ráfaga 0, id duplicado, reloj no retrocede).
@@ -99,10 +99,10 @@ Pruebas primero: `tests/test_core.py` (CSV válido, columna faltante, ráfaga 0,
 
 Objetivo: el estado de un proceso se modela una sola vez y todos los algoritmos lo reutilizan.
 
-- [ ] `PCB`: pid, estado, prioridad, llegada, ráfaga total y restante, `t_inicio`, `t_fin`, `t_primera_cpu`.
-- [ ] Estados `NUEVO → LISTO → EJECUCION → (BLOQUEADO →) LISTO → TERMINADO`.
-- [ ] Tabla de transiciones válidas; una transición inválida lanza `TransicionInvalida` (fail fast).
-- [ ] Invariantes: ráfaga restante ≥ 0; `TERMINADO` solo con restante = 0; un único proceso en `EJECUCION` por CPU.
+- [x] `PCB`: pid, estado, prioridad, llegada, ráfaga total y restante, `t_primera_cpu`, `t_fin`. No hay `t_inicio` aparte: coincidiría con `t_primera_cpu`.
+- [x] Estados `NUEVO → LISTO → EJECUCION → (BLOQUEADO →) LISTO → TERMINADO`.
+- [x] Tabla de transiciones válidas; una transición inválida lanza `TransicionInvalida` (fail fast).
+- [x] Invariantes: ráfaga restante ≥ 0; `TERMINADO` solo con restante = 0; un único proceso en `EJECUCION` por CPU (esta última la aplica `TablaProcesos`, que también emite un `Evento` por transición).
 
 Pruebas primero: transiciones válidas e inválidas, invariantes, `PCB` creado desde `Proceso`.
 
