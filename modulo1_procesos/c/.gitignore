@@ -1,5 +1,8 @@
 *.o
 crear_proceso
 hilos
+hilos_tsan
 crear_proceso.exe
 hilos.exe
+crear_proceso_asan
+hilos_asan
