@@ -34,7 +34,7 @@ El Módulo 4 ya declara pendiente "adaptar `ResultadoMemoria` a `ModuleResult` c
   - SJF no expropiativo. Desempate: llegada, luego `id`.
   - Round Robin: si un proceso llega en el mismo instante en que otro agota su quantum, **el que llega entra a la cola primero**.
   - CPU ociosa: el reloj salta a la siguiente llegada y se registra el hueco como `OCIOSA`.
-  - Cambio de contexto: coste configurable (`--cambio-contexto N`, por defecto 0) y se cuenta siempre.
+  - Cambio de contexto: hay uno cada vez que la CPU pasa de un proceso a otro **distinto** sin hueco ocioso entre ambos (si el mismo proceso sigue, o hay un hueco, no cuenta). El coste es configurable (`--cambio-contexto N`, por defecto 0) y se cobra solo en esos cambios. Con `lote_pequeno.csv`: FCFS, SJF y Prioridad 3; RR(q=2) 8; RR(q=1) 13.
 - Desarrollo con TDD: cada fase empieza con la prueba que falla (rojo), luego la implementación mínima (verde), luego refactor.
 
 ## 3. Estructura objetivo
@@ -120,12 +120,12 @@ Pruebas primero: transiciones válidas e inválidas, invariantes, `PCB` creado d
 
 Objetivo: demostrar el ciclo de vida real de un proceso en el SO anfitrión, contextualizado como "worker de matrícula".
 
-- [ ] `fork()` con manejo de error (`-1`), distinción padre/hijo.
-- [ ] El hijo hace `execvp` de un comando simple (`echo`/`date`) y, si falla, sale con `_exit(127)`.
-- [ ] El padre usa `waitpid` y decodifica el estado: `WIFEXITED`, `WEXITSTATUS`, `WIFSIGNALED`.
-- [ ] Segundo escenario: N hijos ("N solicitudes de matrícula"), el padre recoge a todos; sin zombies.
-- [ ] Demostración de un hijo con salida distinta de cero y de un hijo terminado por señal.
-- [ ] `Makefile`: objetivos `all`, `run-procesos`, `clean`; compilar con `-Wall -Wextra -Wpedantic`.
+- [x] `fork()` con manejo de error (`-1`), distinción padre/hijo.
+- [x] El hijo hace `execvp` de un comando simple (`echo`/`date`) y, si falla, sale con `_exit(127)`.
+- [x] El padre usa `waitpid` y decodifica el estado: `WIFEXITED`, `WEXITSTATUS`, `WIFSIGNALED`.
+- [x] Segundo escenario: N hijos ("N solicitudes de matrícula"), el padre recoge a todos; sin zombies.
+- [x] Demostración de un hijo con salida distinta de cero y de un hijo terminado por señal.
+- [x] `Makefile`: objetivos `all`, `run-procesos`, `clean`; compilar con `-Wall -Wextra -Wpedantic`.
 
 Pruebas primero: `tests/test_hilos_c.py` (o `test_procesos.py`) compila con `make` y ejecuta el binario con `subprocess`, comprueba código de salida 0 y líneas clave del log.
 
@@ -145,10 +145,10 @@ Pruebas primero: `tests/test_hilos_c.py` (o `test_procesos.py`) compila con `mak
 
 Objetivo: demostrar hilos de un mismo proceso con memoria compartida.
 
-- [ ] `pthread_create` / `pthread_join` con comprobación de errores.
-- [ ] Un hilo por curso (`SO101`, `BD202`, `ARQ110`) procesa las solicitudes del lote; cada hilo devuelve su resultado por `join`, sin variables globales compartidas escritas.
-- [ ] Un caso de contraste (opcional, marcado con `--demo-carrera`) con un contador compartido sin protección frente a la versión con `pthread_mutex_t`, solo para mostrar el problema. La sincronización formal es del Módulo 2.
-- [ ] Demostración de la diferencia proceso/hilo: PID compartido, `pthread_self()` distinto.
+- [x] `pthread_create` / `pthread_join` con comprobación de errores.
+- [x] Un hilo por curso (`SO101`, `BD202`, `ARQ110`) procesa las solicitudes del lote; cada hilo devuelve su resultado por `join`, sin variables globales compartidas escritas.
+- [x] Un caso de contraste (opcional, marcado con `--demo-carrera`) con un contador compartido sin protección frente a la versión con `pthread_mutex_t`, solo para mostrar el problema. La sincronización formal es del Módulo 2.
+- [x] Demostración de la diferencia proceso/hilo: PID compartido, `pthread_self()` distinto.
 
 Pruebas primero: ejecutar con `-fsanitize=thread` y verificar 0 reportes en la versión protegida.
 
@@ -167,10 +167,10 @@ Pruebas primero: ejecutar con `-fsanitize=thread` y verificar 0 reportes en la v
 
 Objetivo: tres algoritmos sobre el mismo escenario.
 
-- [ ] `fcfs.py`, `sjf.py`, `prioridad.py` con la firma común `(procesos, config) -> ResultadoPlanificacion`.
-- [ ] `planificador.py`: registro `ALGORITMOS = {"FCFS": ..., "SJF": ..., "PRIORIDAD": ...}`; nombre desconocido ⇒ error explícito.
-- [ ] Manejo de CPU ociosa y de llegadas simultáneas con el desempate documentado.
-- [ ] Cada algoritmo emite eventos (`LLEGADA`, `DESPACHO`, `FIN`, `OCIOSA`) y el segmento del Gantt.
+- [x] `fcfs.py`, `sjf.py`, `prioridad.py` con la firma común `(procesos, config) -> ResultadoPlanificacion`.
+- [x] `planificador.py`: registro `ALGORITMOS = {"FCFS": ..., "SJF": ..., "PRIORIDAD": ...}`; nombre desconocido ⇒ error explícito.
+- [x] Manejo de CPU ociosa y de llegadas simultáneas con el desempate documentado.
+- [x] Cada algoritmo emite eventos (`LLEGADA`, `DESPACHO`, `FIN`, `OCIOSA`) y el segmento del Gantt.
 
 Pruebas primero: tabla de oráculo calculada a mano para `lote_pequeno.csv` (espera = inicio − llegada):
 
@@ -198,19 +198,19 @@ Gantt: |P001      |P002   |P003         |P004 |
 
 Objetivo: el algoritmo expropiativo con quantum.
 
-- [ ] Cola FIFO de listos; `quantum` configurable (> 0, validado).
-- [ ] Regla de llegada simultánea fijada en §2; el proceso que agota el quantum vuelve al final de la cola.
-- [ ] Contador de cambios de contexto y coste configurable.
-- [ ] Primer acceso a CPU por proceso para el tiempo de respuesta.
+- [x] Cola FIFO de listos; `quantum` configurable (> 0, validado).
+- [x] Regla de llegada simultánea fijada en §2; el proceso que agota el quantum vuelve al final de la cola.
+- [x] Contador de cambios de contexto y coste configurable.
+- [x] Primer acceso a CPU por proceso para el tiempo de respuesta.
 
 Pruebas primero: oráculo `lote_pequeno.csv`, quantum 2 → orden P001, P002, P003, P001, P004, P002, P003, P001, P003, P003; finalizan P004 t=10, P002 t=11, P001 t=14, P003 t=17; espera 9/7/8/4 (media 7,00); respuesta 0/1/2/4. Casos: quantum ≥ ráfaga mayor (equivale a FCFS), quantum 1, quantum 0 (error), un proceso.
 
 **Log de la fase:**
 
 ```text
-[modulo1][t=002] RR(q=2) P001 expropiado (restante=3) -> cola=[P002,P003,P001]
-[modulo1][t=014] RR(q=2) P001 terminado
-cambios_de_contexto=9
+[modulo1][t=002] RR(q=2)  P001  EXPROPIADO (restante=3) -> cola=[P002,P003,P001]
+[modulo1][t=014] RR(q=2)  P001  EJECUCION -> TERMINADO
+cambios_de_contexto=8
 ```
 
 **Aceptación:** el oráculo se cumple; con quantum ≥ 7 el resultado es idéntico a FCFS.
@@ -236,7 +236,7 @@ Comparación | escenario=lote_pequeno.csv
  FCFS       5.25    9.50     5.25       100.0  3
  SJF        3.75    8.00     3.75       100.0  3
  PRIORIDAD  4.00    8.25     4.00       100.0  3
- RR(q=2)    7.00    ...      ...        ...    9
+ RR(q=2)    7.00    11.25    ...        ...    8
 Mejor espera media: SJF
 ```
 
